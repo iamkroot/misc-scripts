@@ -21,6 +21,7 @@ from threading import Thread
 
 from jeepney import HeaderFields, MatchRule, Message
 from jeepney.io.blocking import open_dbus_connection
+import subprocess as sp
 
 
 @dataclass(slots=True)
@@ -72,9 +73,30 @@ def start_monitor():
 
 def main():
     """Example consumer that simply prints the notification"""
+
+    def ping_phone(notif: Notif):
+        try: 
+            sp.check_call(["kdeconnect-cli", "--ping-msg", f"Custom ping {notif.summary}!\n{notif.body}", "-n", "devicename"])
+        except sp.CalledProcessError as e:
+            print(f"error calling kdeconnect-cli {e}")
+
+
+    def play_sound(notif: Notif):
+        _ = notif
+        try: 
+            sp.check_call(["mpv", "/usr/share/sounds/freedesktop/stereo/message-new-instant.oga"], stdout=sp.DEVNULL, stderr=sp.DEVNULL)
+        except sp.CalledProcessError as e:
+            print(f"error calling mpv {e}")
+
+    start_monitor()
+
+    on_notif = [ping_phone, play_sound]
     while True:
         notif = queue.get()
-        print(notif)
+        if "urgent" in notif.summary:
+            threads = [Thread(target=func, args=(notif,)) for func in on_notif]
+            for t in threads: t.start()
+            for t in threads: t.join()
 
 
 if __name__ == "__main__":

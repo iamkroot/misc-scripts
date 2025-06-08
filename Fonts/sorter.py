@@ -1,3 +1,12 @@
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.12"
+# dependencies = [
+#     "ttfquery==2.0.0b1",
+#     "fonttools",
+# ]
+# ///
+
 from pathlib import Path
 from fontTools.ttLib import TTFont
 from ttfquery import describe

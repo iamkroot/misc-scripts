@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Helper to get good pdf exports from draw.io in the prescence of custom fonts.
 
@@ -45,7 +46,7 @@ if not args.output_path:
     args.output_path = args.svg.with_suffix(".html")
 
 # classic: https://stackoverflow.com/questions/1732348/
-m = re.search(r"@page geP[^/]*", args.html.read_text(), re.MULTILINE)
+m = re.search(r"@page (gePageFormat-\d+-\d+)[^/]*", args.html.read_text(), re.MULTILINE)
 assert m
 page_style = """<style type="text/css">{}/style>""".format(m.group(0))
 
@@ -55,8 +56,8 @@ preamble = """
     {}
 </head>
 <body>
-<div id="container" class="gePageFormat-___-___">
-""".format(page_style)
+<div id="container" class="{}">
+""".format(page_style, m.group(1))
 
 post = """</div>
 <style>
